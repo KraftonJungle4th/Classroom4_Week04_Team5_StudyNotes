@@ -7,8 +7,22 @@ rbtree *new_rbtree(void)
 {
     rbtree *p = (rbtree *)calloc(1, sizeof(rbtree));
 
+    if (!p)
+    {
+        // 메모리 할당 실패 처리
+        return NULL;
+    }
+
     // 센티넬(가드) 노드를 생성하고 검은색으로 설정
     p->nil = (node_t *)calloc(1, sizeof(node_t));
+
+    if (!p->nil)
+    {
+        // 메모리 할당 실패 처리
+        free(p); // 이미 할당된 p 메모리 해제
+        return NULL;
+    }
+
     p->nil->color = RBTREE_BLACK;
     p->root = p->nil;
 
