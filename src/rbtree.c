@@ -104,140 +104,136 @@ void rbtree_right_rotate(rbtree *t, node_t *x)
     x->parent = y;
 }
 
-void rbtree_insert_fixup(rbtree *t, node_t *z)
+void rbtree_insert_fixup(rbtree *t, node_t *newNode)
 {
-    // 부모 노드와 삼촌 노드의 색깔을 빨간색에서 검은색으로 변경
-    // 조부모 노드의 색깔을 검은색에서 빨간색으로 변경
-
-    // 삼촌 노드가 검은색인 경우:
-    // 새로운 노드가 부모 노드의 오른쪽 자식인 경우:
-    // 왼쪽 회전을 수행
-
-    // 새로운 노드가 부모 노드의 왼쪽 자식인 경우:
-    // 부모 노드의 색깔을 검은색에서 빨간색으로 변경
-    // 조부모 노드의 색깔을 검은색에서 빨간색으로 변경한 후, 오른쪽 회전을 수행
-
-
     // 삽입한 노드부터 루트 노드까지 거슬러 올라가며 다음과 같은 경우를 고려
-    while (z->parent->color == RBTREE_RED)
+    while (newNode->parent->color == RBTREE_RED)
     {
         // 경우 1: 새로운 노드의 부모 노드가 조부모 노드의 왼쪽 자식인 경우
-        if (z->parent == z->parent->parent->left)
+        if (newNode->parent == newNode->parent->parent->left)
         {
-            // 삼촌 노드(부모 노드의 형제) 정의
-            node_t *y = z->parent->parent->right;
+            // 조부모 노드, 삼촌 노드(부모 노드의 형제) 정의
+            node_t *grandParent = newNode->parent->parent;
+            node_t *uncle = grandParent->right;
 
             // 삼촌 노드 (부모 노드의 형제)가 빨간색인 경우:
-            if (y->color == RBTREE_RED)
+            if (uncle->color == RBTREE_RED)
             {
-                z->parent->color = RBTREE_BLACK;
-                y->color = RBTREE_BLACK;
-                z->parent->parent->color = RBTREE_RED;
-                z = z->parent->parent;
+                // 부모 노드와 삼촌 노드의 색깔을 빨간색에서 검은색으로 변경
+                newNode->parent->color = RBTREE_BLACK;
+                uncle->color = RBTREE_BLACK;
+
+                // 조부모 노드의 색깔을 검은색에서 빨간색으로 변경
+                grandParent->color = RBTREE_RED;
+                newNode = grandParent;
             }
-            else if (z == z->parent->right)
+            // 삼촌 노드가 검은색인 경우:
+            else
             {
-                z = z->parent;
-                rbtree_left_rotate(t, z);
+                // 새로운 노드가 부모 노드의 오른쪽 자식인 경우에만
+                if (newNode == newNode->parent->right)
+                {
+                    newNode = newNode->parent;
+                    rbtree_left_rotate(t, newNode); // 왼쪽 회전을 수행
+                }
+                // 부모와 조부모 노드의 색을 변경한 후, 오른쪽 회전을 수행
+                newNode->parent->color = RBTREE_BLACK;
+                grandParent->color = RBTREE_RED;
+                rbtree_right_rotate(t, newNode);
             }
-            z->parent->color = RBTREE_BLACK;
-            z->parent->parent->color = RBTREE_RED;
-            rbtree_right_rotate(t, z);
         }
+
+        // 경우 2: 새로운 노드의 부모 노드가 조부모 노드의 오른쪽 자식인 경우 (위의 경우를 좌우 반전)
         else
         {
-            node_t *y = z->parent->parent->right;
+            node_t *grandParent = newNode->parent->parent;
+            node_t *uncle = grandParent->left;
 
-            if (y->color == RBTREE_RED)
+            // 삼촌 노드 (부모 노드의 형제)가 빨간색인 경우:
+            if (uncle->color == RBTREE_RED)
             {
-                z->parent->color = RBTREE_BLACK;
-                y->color = RBTREE_BLACK;
-                z->parent->parent->color = RBTREE_RED;
-                z = z->parent->parent;
+                // 부모 노드와 삼촌 노드의 색깔을 빨간색에서 검은색으로 변경
+                newNode->parent->color = RBTREE_BLACK;
+                uncle->color = RBTREE_BLACK;
+                // 조부모 노드의 색깔을 검은색에서 빨간색으로 변경
+                grandParent->color = RBTREE_RED;
+                newNode = grandParent;
             }
-            else if (z == z->parent->right)
+            else // 삼촌 노드가 검은색인 경우:
             {
-                z = z->parent;
-                rbtree_right_rotate(t, z);
+                // 새로운 노드가 부모 노드의 왼쪽 자식인 경우에만
+                if (newNode == newNode->parent->left)
+                {
+                    newNode = newNode->parent;
+                    rbtree_right_rotate(t, newNode); // 오른쪽 회전을 수행
+                }
+                // 부모와 조부모 노드의 색을 변경한 후, 왼쪽 회전을 수행
+                newNode->parent->color = RBTREE_BLACK;
+                grandParent->color = RBTREE_RED;
+                rbtree_left_rotate(t, newNode);
             }
-            z->parent->color = RBTREE_BLACK;
-            z->parent->parent->color = RBTREE_RED;
-            rbtree_left_rotate(t, z);
         }
     }
 
     // 루트 노드의 색깔 설정: 레드-블랙 트리의 루트 노드를 검은색으로 설정하여 균형을 유지
     t->root->color = RBTREE_BLACK;
-
-    // 경우 2: 새로운 노드의 부모 노드가 조부모 노드의 오른쪽 자식인 경우 (위의 경우를 좌우 반전)
-
-    // 삼촌 노드 (부모 노드의 형제)가 빨간색인 경우:
-    // 부모 노드와 삼촌 노드의 색깔을 빨간색에서 검은색으로 변경
-    // 조부모 노드의 색깔을 검은색에서 빨간색으로 변경
-
-    // 삼촌 노드가 검은색인 경우:
-    // 새로운 노드가 부모 노드의 왼쪽 자식인 경우:
-    // 오른쪽 회전을 수행
-
-    // 새로운 노드가 부모 노드의 오른쪽 자식인 경우:
-    // 부모 노드의 색깔을 검은색에서 빨간색으로 변경
-    // 조부모 노드의 색깔을 검은색에서 빨간색으로 변경한 후, 왼쪽 회전을 수행
 }
 
 // 트리에 새로운 키를 가진 노드를 삽입하는 함수
 node_t *rbtree_insert(rbtree *t, const key_t key)
 {
     // 일반 이진 탐색 트리처럼 노드 삽입
-    node_t *x = t->root;
-    node_t *y = t->nil;
+    node_t *currentNode = t->root; // 루트 노드
+    node_t *parentNode = t->nil; // 추후 부모가 될 노드
 
-    // 새로 노드가 삽입될 위치 찾기
-    while (x != t->nil)
-    {   
-        y = x;
+    // 루트 노드부터 내려가며 새로 노드가 삽입될 위치 찾기
+    while (currentNode != t->nil)
+    {
+        parentNode = currentNode;
 
-        if (key < x->key)
+        if (key < currentNode->key)
         {
-            x = x->left;
+            currentNode = currentNode->left;
         }
         else
         {
-            x = x->right;
+            currentNode = currentNode->right;
         }
     }
 
     // 받은 key 값을 가진 노드 추가
-    node_t *z = (node_t *)calloc(1, sizeof(node_t));
-    if (!z)
+    node_t *newNode = (node_t *)calloc(1, sizeof(node_t));
+    if (!newNode)
     {
         // 메모리 할당 실패 처리
         return NULL;
     }
 
-    z->parent = y;
-    z->key = key;
+    // 삽입될 노드의 값 설정
+    newNode->parent = parentNode;
+    newNode->key = key;
 
     // 노드 삽입
-    if (y == t->nil)
+    if (parentNode == t->nil)
     {
-        t->root = z;
+        t->root = newNode;
     }
-    else if (z->key < y->key)
+    else if (newNode->key < parentNode->key)
     {
-        y->left = z;
+        parentNode->left = newNode;
     }
     else
     {
-        y->right = z;
+        parentNode->right = newNode;
     }
 
     // 삽입된 노드의 색상을 빨간색으로 설정
-    z->color = RBTREE_RED;
-    z->left = t->nil;
-    z->right = t->nil;
+    newNode->color = RBTREE_RED;
+    newNode->left = t->nil;
+    newNode->right = t->nil;
 
     // Red-Black 트리의 속성을 유지하기 위해 삽입 후 조정 작업 필요
-    rbtree_insert_fixup(t, z);
+    rbtree_insert_fixup(t, newNode);
     return t->root;
 }
 
@@ -255,6 +251,7 @@ node_t *rbtree_find(const rbtree *t, const key_t key)
 node_t *rbtree_min(const rbtree *t)
 {
     // 1. 루트 노드부터 시작하여 가장 왼쪽 노드까지 이동
+
     // 2. 가장 왼쪽 노드 반환
     return t->root;
 }
