@@ -265,7 +265,6 @@ node_t *rbtree_find(const rbtree *t, const key_t key)
 node_t *rbtree_min(const rbtree *t)
 {
     // 1. 루트 노드부터 시작하여 가장 왼쪽 노드까지 이동
-
     // 2. 가장 왼쪽 노드 반환
     return t->root;
 }
@@ -279,12 +278,143 @@ node_t *rbtree_max(const rbtree *t)
     return t->root;
 }
 
+// 특정 서브 노드에서 가장 작은 값을 찾는 함수(노드보다 큰 값중 가장 작은 값 successor)
+node_t *rbtree_minimum(const rbtree *t, node_t *y) {
+    node_t *r = y;
+
+    if(r == t->nil) {
+        return r;
+    }
+
+    while (y->left != t->nil) { // y의 왼쪽 자식이 nil이 되기 전까지 반복
+        y = y->left; // y의 왼쪽 자식값을 y에 담는다
+    }
+    return r; // r 반환
+}
+
+// 노드를 삭제 후, 삭제된 노드의 자식 노드들을 다른 노드에 연결하는 함수
+void rbtree_transplant(rbtree *t, node_t *u, node_t *v) {
+    if (u->parent == t->nil) { // 삭제된 노드의 부모 노드가 nil이라면(트리의 루트 노트인지 확인)
+        t->root = v; // 루트 노드를 v로 설정(삭제된 노드의 자식 노드 중 하나)
+    } else if(u == u->parent->left) { // 루트노드가 아니라면 삭제 노드가 부모노드의 왼쪽 자식인지 확인
+        u->parent->left = v; // 왼쪽 자식을 v로 설정
+    } else { // 그것도 아니라면
+        u->parent->right = v; // 오른쪽 자식을 v로 설정
+    }
+
+    v->parent = u->parent; // v의 부모를 u의 부모로 설정(v가 u의 위치를 대체)
+}
+
+// 픽스업
+void rbtree_erase_fixup(rbtree *t, node_t *x) {
+    node_t *w;
+    while((x != t->root) && (x->color == RBTREE_BLACK)) {
+        if(x == x->parent->left) {
+            w = x->parent->right;
+
+            // case 1:
+            if(w->color == RBTREE_RED) {
+                w->color = RBTREE_BLACK;
+                x->parent->color = RBTREE_RED;
+                rbtree_left_rotate(t, x->parent);
+                w = x->parent->right;
+            }
+
+            // case 2:
+            if(w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK) {
+                w->color = RBTREE_RED;
+                x = x->parent;
+        } else {
+            // case 3:
+            if(w->right->color == RBTREE_BLACK) {
+                w->left->color = RBTREE_BLACK;
+                w->color = RBTREE_RED;
+                rbtree_right_rotate(t, w);
+                w = x->parent->right;
+            }
+
+            // case 4:
+            w->color = x->parent->color;
+            x->parent->color = RBTREE_BLACK;
+            w->right->color = RBTREE_BLACK;
+            rbtree_left_rotate(t, x->parent);
+            x = t->root;
+            }
+        } else {
+            w = x->parent->left;
+                
+            // case 1:
+            if(w->color == RBTREE_RED) {
+                w->color = RBTREE_BLACK;
+                x->parent->color = RBTREE_RED;
+                rbtree_right_rotate(t, x->parent);
+                w = x->parent->left;
+            }
+
+            // case 2:
+            if(w->right->color == RBTREE_BLACK && w->left->color == RBTREE_BLACK) {
+                w->color = RBTREE_RED;
+                x = x->parent;
+            } else {
+                // case 3:
+                if(w->left->color == RBTREE_BLACK) {
+                    w->right->color = RBTREE_BLACK;
+                    w->color = RBTREE_RED;
+                    rbtree_left_rotate(t, w);
+                    w = x->parent->left;
+                }
+
+                // case 4:
+                w->color = x->parent->color;
+                x->parent->color = RBTREE_BLACK;
+                w->left->color = RBTREE_BLACK;
+                rbtree_right_rotate(t, x->parent);
+                x = t->root;
+            }
+        }
+    }
+    x->color = RBTREE_BLACK;
+}
+
 // 트리에서 주어진 노드를 삭제하는 함수
 // TODO: 삭제 구현
 int rbtree_erase(rbtree *t, node_t *p)
 {
-    // 1. 삭제할 노드 찾기 (rbtree_find 사용)
-    // 2. 노드 삭제 후 Red-Black 트리 속성 유지를 위한 조정 작업 필요
+    node_t *y = p;
+    color_t y_original_color = y->color;
+    node_t *x;
+
+    if(p->left == t->nil) {
+        x = p->right;
+        rbtree_transplant(t, p, p->right);
+    } else if(p->right == t->nil) {
+        x = p->left;
+        rbtree_transplant(t, p, p->left);
+    } else {
+        y = rbtree_minimum(t, p->right);
+        y_original_color = y->color;
+        x = y->right;
+
+        if(y->parent == p) {
+            x->parent = y;
+        } else {
+          rbtree_transplant(t, y, y->right);
+          y->right = p->right;
+          y->right->parent = y;  
+        }
+
+        rbtree_transplant(t, p, y);
+        y->left = p->left;
+        y->left->parent = y;
+        y->color = p->color;
+    }
+
+    if (y_original_color == RBTREE_BLACK) {
+        rbtree_erase_fixup(t, x);
+    }
+
+    free(p);
+
     return 0;
 }
 
