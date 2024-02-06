@@ -29,13 +29,25 @@ rbtree *new_rbtree(void)
     return p;
 }
 
+void delete_postorder(rbtree *t, node_t *currentNode)
+{
+    if (currentNode != t->nil)
+    {
+        delete_postorder(t, currentNode->left);
+        delete_postorder(t, currentNode->right);
+        free(currentNode);
+    }    
+}
+
 // 트리와 모든 노드의 메모리를 해제하는 함수
 // TODO: 트리 노드의 메모리를 회수
 void delete_rbtree(rbtree *t)
 {
     // 모든 노드를 순회하면서 메모리 해제 필요
+    delete_postorder(t, t->root);
 
     // 후위 순회 방식을 사용해 자식 노드부터 메모리 해제 후, 루트 노드 해제
+    free(t->nil); // nil 제외하고 후위 순회해서 nil도 해제
     free(t);
 }
 
@@ -252,6 +264,10 @@ node_t *rbtree_min(const rbtree *t)
     // 1. 루트 노드부터 시작하여 가장 왼쪽 노드까지 이동
     node_t *leftNode = t->root;
     
+    if(leftNode == t->nil) {
+        return leftNode;
+    }
+
     while (leftNode->left != t->nil) {
         leftNode = leftNode->left;
     }
@@ -266,6 +282,10 @@ node_t *rbtree_max(const rbtree *t)
     // 1. 루트 노드부터 시작하여 가장 오른쪽 노드까지 이동
     node_t *rightNode = t->root;
     
+    if(rightNode == t->nil) {
+        return rightNode;
+    }
+
     while (rightNode->left != t->nil) {
         rightNode = rightNode->left;
     }
