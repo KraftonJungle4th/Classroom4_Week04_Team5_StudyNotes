@@ -285,39 +285,39 @@ node_t *rbtree_find(const rbtree *t, const key_t key)
 node_t *rbtree_min(const rbtree *t)
 {
     // 1. 루트 노드부터 시작하여 가장 왼쪽 노드까지 이동
-    node_t *leftNode = t->root;
+    node_t *minNode = t->root;
 
-    if (leftNode == t->nil)
+    if (minNode == t->nil)
     {
-        return leftNode;
+        return minNode;
     }
 
-    while (leftNode->left != t->nil)
+    while (minNode->left != t->nil)
     {
-        leftNode = leftNode->left;
+        minNode = minNode->left;
     }
 
     // 2. 가장 왼쪽 노드 반환
-    return leftNode;
+    return minNode;
 }
 
 // 트리에서 가장 큰 키를 가진 노드를 찾는 함수
 node_t *rbtree_max(const rbtree *t)
 {
     // 1. 루트 노드부터 시작하여 가장 오른쪽 노드까지 이동
-    node_t *rightNode = t->root;
+    node_t *maxNode = t->root;
 
-    if (rightNode == t->nil)
+    if (maxNode == t->nil)
     {
-        return rightNode;
+        return maxNode;
     }
 
-    while (rightNode->left != t->nil)
+    while (maxNode->right != t->nil)
     {
-        rightNode = rightNode->left;
+        maxNode = maxNode->right;
     }
     // 2. 가장 오른쪽 노드 반환
-    return rightNode;
+    return maxNode;
 }
 
 // 특정 서브 노드에서 가장 작은 값을 찾는 함수(노드보다 큰 값중 가장 작은 값 successor)
