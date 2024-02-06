@@ -241,9 +241,23 @@ node_t *rbtree_insert(rbtree *t, const key_t key)
 // TODO: 찾기 구현
 node_t *rbtree_find(const rbtree *t, const key_t key)
 {
+    node_t* node = NULL;
+    node = t->root;
     // 1. 루트 노드부터 시작하여 키 비교를 통해 왼쪽 또는 오른쪽 자식으로 이동
-    // 2. 일치하는 키를 찾으면 해당 노드 반환, 찾지 못하면 NULL 반환
-    return t->root;
+    while (node != t->nil && node->key != key) {
+        if (key < node->key) {
+            node = node->left;
+        }
+        else {
+            node = node->right;
+        }
+    }
+        // 2. 일치하는 키를 찾으면 해당 노드 반환, 찾지 못하면 NULL 반환
+    if (node == t->nil) {
+        return NULL;
+    }
+
+    return node;
 }
 
 // 트리에서 가장 작은 키를 가진 노드를 찾는 함수
