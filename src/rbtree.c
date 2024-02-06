@@ -492,7 +492,7 @@ void inorder_traversal(node_t *node, int *index, int *arr) {
     }
 
     // 왼쪽 서브트리를 순회
-    inorder_traversal(node->left, &index, arr);
+    inorder_traversal(node->left, index, arr);
 
     // 현재 노드 방문
     // 현재 노드의 키를 배열의 현재 index 위치에 저장하고, index 증가
@@ -503,7 +503,7 @@ void inorder_traversal(node_t *node, int *index, int *arr) {
     }
 
     // 오른쪽 서브트리를 순회
-    inorder_traversal(node->right, &index, arr);
+    inorder_traversal(node->right, index, arr);
 }
 
 // 레드-블랙 트리의 모든 키를 배열로 변환하는 함수
