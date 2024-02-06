@@ -247,22 +247,30 @@ node_t *rbtree_find(const rbtree *t, const key_t key)
 }
 
 // 트리에서 가장 작은 키를 가진 노드를 찾는 함수
-// TODO: 찾기 구현
 node_t *rbtree_min(const rbtree *t)
 {
     // 1. 루트 노드부터 시작하여 가장 왼쪽 노드까지 이동
+    node_t *leftNode = t->root;
+    
+    while (leftNode->left != t->nil) {
+        leftNode = leftNode->left;
+    }
 
     // 2. 가장 왼쪽 노드 반환
-    return t->root;
+    return leftNode;
 }
 
 // 트리에서 가장 큰 키를 가진 노드를 찾는 함수
-// TODO: 찾기 구현
 node_t *rbtree_max(const rbtree *t)
 {
     // 1. 루트 노드부터 시작하여 가장 오른쪽 노드까지 이동
+    node_t *rightNode = t->root;
+    
+    while (rightNode->left != t->nil) {
+        rightNode = rightNode->left;
+    }
     // 2. 가장 오른쪽 노드 반환
-    return t->root;
+    return rightNode;
 }
 
 // 트리에서 주어진 노드를 삭제하는 함수
